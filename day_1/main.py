@@ -29,7 +29,6 @@ class Day1Solver(FileReader):
 
     return result
   
-
   def _get_all_digits(self, line: str) -> list[int]:
     return [int(char) for char in line if char.isdigit()]
   
@@ -47,9 +46,9 @@ class Day1Solver(FileReader):
 
     numbers = []
     for line in lines:
-      only_digits = self._get_all_digits(self._replace_numbers(line))
-      logger.debug(f'Found these digits: {only_digits}')
-      numbers.append(self._compose_number(only_digits))
+      final_number = self._get_final_number(line)
+      logger.debug(f'Found {final_number} from {line}')
+      numbers.append(final_number)
     logger.debug(f'Got this numbers: {numbers}')
     result = sum([int(number) for number in numbers])
     logger.info(f'The sum of the numbers is {result}')
@@ -57,32 +56,38 @@ class Day1Solver(FileReader):
     return result
   
   
-  def _replace_numbers(self, line: str) -> str:
+  def _get_final_number(self, line: str) -> str:
     """
     Given a line, it finds the first occurrence of a number as word
     and returns the number found and the rest of the line.
     """
 
     NUMBERS = {
-      'one': 1,
-      'two': 2,
-      'three': 3,
-      'four': 4,
-      'five': 5, 
-      'six': 6,
-      'seven': 7,
-      'eight': 8,
-      'nine': 9,
+      'one': '1',
+      'two': '2',
+      'three': '3',
+      'four': '4',
+      'five': '5', 
+      'six': '6',
+      'seven': '7',
+      'eight': '8',
+      'nine': '9',
     }
 
-    logger.info(f'Replacing in line: {line}')
-    modified_line = line
-    for num in NUMBERS.keys():
-      modified_line = modified_line.replace(num, str(NUMBERS[num]))
-    logger.info(f'Line {line} became {modified_line}')
+    number_pattern = 'one|two|three|four|five|six|seven|eight|nine'
+    pattern = r'(\d|' + number_pattern + r')'
+    logger.debug(f'Pattern is: {pattern}')
+    first_number: str = re.findall(pattern, line)[0]
+    logger.debug(f"First number is: {first_number}")
 
-    return modified_line
+    inverse_pattern = r'(\d|' + number_pattern[::-1] + r')'
+    logger.debug(f'Inverse pattern: {inverse_pattern}')
+    logger.debug(f'Inverse line: {line[::-1]}')
+    
+    second_number: list[str] = re.findall(inverse_pattern, line[::-1])[0][::-1]
+    logger.debug(f"Second number is: {second_number}")
 
+    return f'{NUMBERS.get(first_number, first_number)}{NUMBERS.get(second_number, second_number)}'
 
 
 if __name__ == '__main__':

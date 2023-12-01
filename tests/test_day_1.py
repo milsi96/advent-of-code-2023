@@ -32,11 +32,11 @@ class TestDay1Solver(unittest.TestCase):
 
   def test_replaces_numbers_with_correct_digits(self):
     line = '4nineeightseven2'
-    modified_line = Day1Solver()._replace_numbers(line)
+    modified_line = Day1Solver()._get_final_number(line)
     logger.debug(f'Line {line} became {modified_line}')
-    self.assertEqual(modified_line, '49872')
+    self.assertEqual(modified_line, '42')
 
     another_line = 'zoneight234'
-    another_modified_line = Day1Solver()._replace_numbers(another_line)
+    another_modified_line = Day1Solver()._get_final_number(another_line)
     logger.debug(f'Line {another_line} became {another_modified_line}')
-    self.assertEqual(another_modified_line, 'z1ight234')
+    self.assertEqual(another_modified_line, '14')
