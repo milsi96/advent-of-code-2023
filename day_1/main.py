@@ -27,4 +27,4 @@ class Day1Solver(FileReader):
 
 
 if __name__ == '__main__':
-  Day1Solver().solve_first_problem("day1/input.txt")
+  Day1Solver().solve_first_problem("day_1/input.txt")
