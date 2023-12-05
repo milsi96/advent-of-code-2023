@@ -1,13 +1,10 @@
-import logging
 import sys
+from custom_logger.custom_logger import CustomLogger
 from file_reader.file_reader import FileReader
 import re
 
 
-logger = logging.getLogger(__name__)
-stream_handler = logging.StreamHandler(sys.stdout)
-logger.setLevel(logging.INFO)
-logger.addHandler(stream_handler)
+logger = CustomLogger(__name__).get_logger()
 
 
 class Map:
@@ -58,7 +55,9 @@ class Day5Solver(FileReader):
     SOURCE_RANGE_START = 1
     RANGE_LENGTH = 2
 
-    def _parse_lines(self, lines: list[str]) -> (list[int], dict[str, Map]):
+    def _parse_lines(
+        self, lines: list[str], invert_destination: bool = False
+    ) -> (list[int], dict[str, Map]):
         seeds_pattern = r'^seeds:\s.+$'
         map_pattern = r'^(.+)-to-(.+)\smap:$'
         range_pattern = r'^(\d+)\s(\d+)\s(\d+)$'
@@ -109,71 +108,12 @@ class Day5Solver(FileReader):
 
                 logger.debug(f'Source ranges found: {source_ranges}')
                 logger.debug(f'Destination ranges found: {destination_ranges}')
-                maps[source_category] = Map(
-                    source_category,
-                    destination_category,
-                    source_ranges,
-                    destination_ranges,
-                )
 
-                i = i + 2
-            else:
-                continue
+                key = source_category
+                if invert_destination:
+                    key = destination_category
 
-        return (seeds, maps)
-
-    def _parse_lines_2(self, lines: list[str]) -> (list[int], dict[str, Map]):
-        seeds_pattern = r'^seeds:\s.+$'
-        map_pattern = r'^(.+)-to-(.+)\smap:$'
-        range_pattern = r'^(\d+)\s(\d+)\s(\d+)$'
-
-        seeds: list[int] = []
-        maps: dict[str, Map] = {}
-        for i in range(len(lines)):
-            if re.match(seeds_pattern, lines[i]):
-                seeds.extend(
-                    [int(seed) for seed in lines[i].split(':')[1].strip().split(' ')]
-                )
-                logger.info(f'Seeds found: {seeds}')
-            elif re.match(map_pattern, lines[i]):
-                source_category, destination_category = re.findall(
-                    map_pattern, lines[i]
-                )[0]
-                logger.info(f'Map found: {source_category} to {destination_category} ')
-
-                source_ranges: list[range] = []
-                destination_ranges: list[range] = []
-                increment = 1
-                while (
-                    i + increment < len(lines) is not None
-                    and lines[i + increment] != ''
-                ):
-                    conversion = [
-                        int(num)
-                        for num in re.findall(range_pattern, lines[i + increment])[0]
-                    ]
-
-                    source_ranges.append(
-                        range(
-                            conversion[self.SOURCE_RANGE_START],
-                            conversion[self.SOURCE_RANGE_START]
-                            + conversion[self.RANGE_LENGTH],
-                        )
-                    )
-
-                    destination_ranges.append(
-                        range(
-                            conversion[self.DESTINATION_RANGE_START],
-                            conversion[self.DESTINATION_RANGE_START]
-                            + conversion[self.RANGE_LENGTH],
-                        )
-                    )
-
-                    increment = increment + 1
-
-                logger.debug(f'Source ranges found: {source_ranges}')
-                logger.debug(f'Destination ranges found: {destination_ranges}')
-                maps[destination_category] = Map(
+                maps[key] = Map(
                     source_category,
                     destination_category,
                     source_ranges,
@@ -206,7 +146,7 @@ class Day5Solver(FileReader):
 
     def solve_second_problem(self, file_name: str) -> int:
         lines = self.get_lines(file_name)
-        seeds, maps = self._parse_lines_2(lines)
+        seeds, maps = self._parse_lines(lines, invert_destination=True)
 
         logger.debug(f'Seeds: {seeds}, {len(seeds)}')
         temp_ranges = []
@@ -237,5 +177,5 @@ class Day5Solver(FileReader):
 
 
 if __name__ == '__main__':
-    # Day5Solver().solve_first_problem("day_5/input.txt")
+    Day5Solver().solve_first_problem("day_5/input.txt")
     Day5Solver().solve_second_problem("day_5/input.txt")
