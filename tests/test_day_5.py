@@ -23,3 +23,8 @@ class TestDay5Solver(unittest.TestCase):
 
         self.assertEqual(maps['seed'].get_destination(79), 81)
         self.assertEqual(maps['seed'].get_destination(13), 13)
+
+    def test_can_solve_second_problem(self):
+        result = Day5Solver().solve_second_problem('tests/resources/test_day_5_1.txt')
+        logger.debug(f'Result {result}')
+        self.assertEqual(result, 46)
