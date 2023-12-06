@@ -4,7 +4,6 @@ import sys
 
 class CustomLogger:
     name: str
-    level: str
 
     def __init__(self, name: str):
         self.name = name
