@@ -1,11 +1,9 @@
 import logging
 import sys
-import coloredlogs
 
 
 class CustomLogger:
     name: str
-    level: str
 
     def __init__(self, name: str):
         self.name = name
@@ -21,7 +19,5 @@ class CustomLogger:
         )
         logger.setLevel(logging.DEBUG)
         logger.addHandler(stream_handler)
-
-        coloredlogs.install(level='DEBUG', logger=logger)
 
         return logger
