@@ -8,7 +8,6 @@ class TestDay6Solver(unittest.TestCase):
         result = Day6Solver().solve_first_problem('tests/resources/test_day_6.txt')
         self.assertEqual(result, 288)
 
-    @unittest.skip
     def test_can_solve_second_problem(self):
         result = Day6Solver().solve_second_problem('tests/resources/test_day_6.txt')
         self.assertEqual(result, 71503)
