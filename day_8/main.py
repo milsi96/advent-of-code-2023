@@ -106,5 +106,5 @@ class Day8Solver(FileReader):
 
 
 if __name__ == '__main__':
-    # Day8Solver().solve_first_problem("day_8/input.txt")
+    Day8Solver().solve_first_problem("day_8/input.txt")
     Day8Solver().solve_second_problem("day_8/input.txt")
