@@ -8,7 +8,7 @@ class CustomLogger:
     def __init__(self, name: str):
         self.name = name
 
-    def get_logger(self) -> 'CustomLogger':
+    def get_logger(self) -> logging.Logger:
         logger = logging.getLogger(self.name)
         stream_handler = logging.StreamHandler(sys.stdout)
         stream_handler.setFormatter(

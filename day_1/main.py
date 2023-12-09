@@ -83,11 +83,11 @@ class Day1Solver(FileReader):
         logger.debug(f'Inverse pattern: {inverse_pattern}')
         logger.debug(f'Inverse line: {line[::-1]}')
 
-        second_number: list[str] = re.findall(inverse_pattern, line[::-1])[0][::-1]
+        second_number: str = re.findall(inverse_pattern, line[::-1])[0][::-1]
         logger.debug(f"Second number is: {second_number}")
 
-        result = f'{NUMBERS.get(first_number, first_number)}'
-        f'{NUMBERS.get(second_number, second_number)}'
+        result = NUMBERS.get(first_number, first_number)
+        result += NUMBERS.get(second_number, second_number)
         return result
 
 
