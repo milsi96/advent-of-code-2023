@@ -1,13 +1,8 @@
-import logging
-import sys
 from file_reader.file_reader import FileReader
 import re
+from custom_logger.custom_logger import CustomLogger
 
-
-logger = logging.getLogger(__name__)
-stream_handler = logging.StreamHandler(sys.stdout)
-logger.setLevel(logging.INFO)
-logger.addHandler(stream_handler)
+logger = CustomLogger(__name__).get_logger()
 
 
 class Game:
@@ -70,7 +65,7 @@ class Day2Solver(FileReader):
         return Game(game_id, cubes)
 
     def _get_total_cubes(self, line: str) -> dict[str, int]:
-        total = {}
+        total: dict[str, int] = {}
         for set_str in line.split(';'):
             set_dict = self._get_set(set_str)
             logger.debug(f'Got this set {set_str}')
@@ -84,8 +79,13 @@ class Day2Solver(FileReader):
         for cubes in set_str.split(','):
             logger.debug(f'This is the cube set: {cubes}')
             cube_pattern = r'(\d+)(blue|green|red)'
-            color = re.match(cube_pattern, cubes).group(2)
-            quantity = re.match(cube_pattern, cubes).group(1)
+            matches = re.match(cube_pattern, cubes)
+            if matches is None:
+                error = f'No matches found in {cubes}'
+                logger.error(error)
+                raise ValueError(error)
+            color = matches.group(2)
+            quantity = matches.group(1)
             result[color] = int(quantity)
             logger.debug(f'This is the result: {result}')
         return result
@@ -93,7 +93,12 @@ class Day2Solver(FileReader):
     def _get_game_id(self, line: str) -> int:
         game_pattern: str = r'Game(\d+)'
         first_part = line.split(':')[0]
-        return int(re.match(game_pattern, first_part).group(1))
+        matches = re.match(game_pattern, first_part)
+        if matches is None:
+            error = f'No matches found in {first_part}'
+            logger.error(error)
+            raise ValueError(error)
+        return int(matches.group(1))
 
 
 if __name__ == '__main__':

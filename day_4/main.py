@@ -122,6 +122,7 @@ class Day4Solver(FileReader):
         pile = CardPile(cards)
 
         logger.info(f'Total scratchcards: {pile.total_scratchpads}')
+        return pile.total_scratchpads
 
 
 if __name__ == '__main__':

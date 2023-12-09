@@ -5,13 +5,13 @@ logger = CustomLogger(__name__).get_logger()
 
 
 class History:
-    numbers: list[int]
+    numbers: list[float]
 
-    def __init__(self, numbers: list[int]):
+    def __init__(self, numbers: list[float]):
         self.numbers = numbers
 
     @property
-    def next_value(cls) -> int:
+    def next_value(cls) -> float:
         differences: list[float] = []
         for i in range(len(cls.numbers) - 1, 0, -1):
             differences.append(cls.numbers[i] - cls.numbers[i - 1])
@@ -24,7 +24,7 @@ class History:
         return cls.numbers[-1] + History(differences).next_value
 
     @property
-    def previous_value(cls) -> int:
+    def previous_value(cls) -> float:
         differences: list[float] = []
         for i in range(len(cls.numbers) - 1, 0, -1):
             differences.append(cls.numbers[i] - cls.numbers[i - 1])
@@ -52,7 +52,7 @@ class Day9Solver(Solver):
 
         logger.info(f'{", ".join([str(history) for history in histories])}')
 
-        values_sum = 0
+        values_sum: float = 0
         for history in histories:
             logger.debug(history)
             next_value = history.next_value
@@ -60,7 +60,7 @@ class Day9Solver(Solver):
             values_sum += history.next_value
 
         logger.info(f'The sum of all next values is {int(values_sum)}')
-        return values_sum
+        return int(values_sum)
 
     def solve_second_problem(self, file_name: str) -> int:
         lines = self.get_lines(file_name)
@@ -70,14 +70,14 @@ class Day9Solver(Solver):
             logger.debug(line)
             histories.append(History([float(num) for num in line.split(' ')]))
 
-        values_sum = 0
+        values_sum: float = 0
         for history in histories:
             previous_value = history.previous_value
             logger.debug(f'{history} -> {previous_value}')
             values_sum += history.previous_value
 
         logger.info(f'The sum of all next values is {int(values_sum)}')
-        return values_sum
+        return int(values_sum)
 
 
 if __name__ == '__main__':

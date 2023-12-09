@@ -1,13 +1,8 @@
 import unittest
-import logging
-import sys
-
 from day_2.main import Day2Solver
+from custom_logger.custom_logger import CustomLogger
 
-logger = logging.getLogger(__name__)
-stream_handler = logging.StreamHandler(sys.stdout)
-logger.setLevel(logging.INFO)
-logger.addHandler(stream_handler)
+logger = CustomLogger(__name__).get_logger()
 
 
 class TestDay2Solver(unittest.TestCase):
