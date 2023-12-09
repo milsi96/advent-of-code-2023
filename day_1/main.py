@@ -86,8 +86,9 @@ class Day1Solver(FileReader):
         second_number: list[str] = re.findall(inverse_pattern, line[::-1])[0][::-1]
         logger.debug(f"Second number is: {second_number}")
 
-        result = f'{NUMBERS.get(first_number, first_number)}'
-        f'{NUMBERS.get(second_number, second_number)}'
+        result = str(NUMBERS.get(first_number, first_number)) + str(
+            NUMBERS.get(second_number, second_number)
+        )
         return result
 
 

@@ -1,7 +1,6 @@
 from functools import reduce
 import logging
 import sys
-from typing import Optional
 from file_reader.file_reader import FileReader
 
 
@@ -55,31 +54,34 @@ class Schematic:
     def __str__(self) -> str:
         return '\n'.join([str(p) for p in self.points])
 
-    def get_point(self, row: int, column: int) -> Optional[Point]:
+    def get_point(self, row: int, column: int) -> Point:
         for p in self.points:
             if p.row == row and p.column == column:
                 return p
-        logger.debug(f'No point found at row {row} and column {column}')
-        return None
+        error = f'No point found at row {row} and column {column}'
+        logger.debug(error)
+        raise ValueError(error)
 
-    def is_number(self, row: int, column: int) -> True:
+    def is_number(self, row: int, column: int) -> bool:
         point: Point = self.get_point(row, column)
         if point is not None:
             return point.is_number
+        return False
 
-    def is_symbol(self, row: int, column: int) -> True:
+    def is_symbol(self, row: int, column: int) -> bool:
         return not self.is_number(row, column)
 
     def get_near_numbers(self, row: int, column: int) -> list[Point]:
         temp: list[Point] = []
-        if self.get_point(row, column) is None:
+        point: Point = self.get_point(row, column)
+        if point is None:
             logger.warning(
                 f'The point you want near numbers of does not '
                 f'exist for row {row} and column {column}'
             )
             return temp
 
-        if not self.get_point(row, column).is_symbol:
+        if point.is_symbol:
             logger.warning(
                 f'The point you want near numbers of is not a symbol, '
                 f'got {self.get_point(row, column)}'
@@ -163,7 +165,7 @@ class Day3Solver(FileReader):
         valid_parts: list[int] = []
         for symbol in schematic.symbols:
             near_numbers = schematic.get_near_numbers(symbol.row, symbol.column)
-            points_checked: set[Point] = []
+            points_checked: set[Point] = set()
             for num in near_numbers:
                 whole_number_list = schematic.get_whole_number(num.row, num.column)
                 checked = True
@@ -173,7 +175,7 @@ class Day3Solver(FileReader):
                 if not checked:
                     value = schematic.convert_to_number(whole_number_list)
                     valid_parts.append(value)
-                    points_checked.extend(whole_number_list)
+                    points_checked.update(whole_number_list)
 
         logger.info(f'Valid parts: {valid_parts}')
         sum_valid_parts = sum(valid_parts)
@@ -192,7 +194,7 @@ class Day3Solver(FileReader):
                 continue
             logger.info(f'Searching for symbol {symbol}')
             near_numbers = schematic.get_near_numbers(symbol.row, symbol.column)
-            points_checked: set[Point] = []
+            points_checked: set[Point] = set()
             to_be_multiplied: list[int] = []
             for num in near_numbers:
                 whole_number_list = schematic.get_whole_number(num.row, num.column)
@@ -203,7 +205,7 @@ class Day3Solver(FileReader):
                 if not checked:
                     value = schematic.convert_to_number(whole_number_list)
                     to_be_multiplied.append(value)
-                    points_checked.extend(whole_number_list)
+                    points_checked.update(whole_number_list)
             if len(to_be_multiplied) == 2:
                 valid_parts.append(reduce(lambda x, y: x * y, to_be_multiplied))
 

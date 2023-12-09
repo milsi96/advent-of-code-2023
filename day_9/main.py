@@ -1,5 +1,5 @@
 from custom_logger.custom_logger import CustomLogger
-from file_reader.file_reader import FileReader
+from solver.solver import Solver
 
 logger = CustomLogger(__name__).get_logger()
 
@@ -41,7 +41,7 @@ class History:
         return f'History: {self.numbers}'
 
 
-class Day9Solver(FileReader):
+class Day9Solver(Solver):
     def solve_first_problem(self, file_name: str) -> int:
         lines = self.get_lines(file_name)
         histories: list[History] = []
