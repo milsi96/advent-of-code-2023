@@ -2,6 +2,7 @@ from typing import Any, Optional
 from custom_logger.custom_logger import CustomLogger
 from solver.solver import Solver
 import copy
+from matplotlib import path
 
 logger = CustomLogger(__name__).get_logger()
 
@@ -206,9 +207,87 @@ class Day10Solver(Solver):
 
         logger.info(f'Starting Position: {grid.start}')
 
-        return 0
+        possible_loop_starts: list[Tile] = []
+        for next_move in grid.start.moves:
+            next_position = Position(
+                grid.start.position.row + next_move.row_increment,
+                grid.start.position.column + next_move.column_increment,
+            )
+            next_tile = grid.get_tile(next_position)
+            if next_tile is not None:
+                possible_loop_starts.append(next_tile)
+
+        loop_start: Tile
+        for tile in possible_loop_starts:
+            for move in tile.moves:
+                next_position = Position(
+                    tile.position.row + move.row_increment,
+                    tile.position.column + move.column_increment,
+                )
+                next_tile = grid.get_tile(next_position)
+                if next_tile is not None and next_tile.symbol == 'S':
+                    loop_start = tile
+
+        prev_pos = Position(grid.start.position.row, grid.start.position.column)
+        current_pos = Position(loop_start.position.row, loop_start.position.column)
+
+        positions: list[Position] = [prev_pos, current_pos]
+        while current_pos != grid.start.position:
+            current_tile = grid.get_tile(current_pos)
+            if current_tile is None:
+                raise ValueError(f'No tile at position {current_pos}')
+            possible_moves = current_tile.moves
+            logger.debug(f'Current tile: {current_tile}')
+            for move in possible_moves:
+                next_position = Position(
+                    current_tile.position.row + move.row_increment,
+                    current_tile.position.column + move.column_increment,
+                )
+                next_tile = grid.get_tile(next_position)
+                if next_tile is None:
+                    error = f'No next tile found at {next_position}'
+                    logger.error(error)
+                    continue
+                if next_tile.position != prev_pos:
+                    prev_pos = copy.copy(current_tile.position)
+                    current_pos = copy.deepcopy(next_tile.position)
+                    positions.append(current_pos)
+                    break
+
+        logger.debug(', '.join([str(pos) for pos in positions]))
+
+        loop_tuple = [(pos.row, pos.column) for pos in positions]
+        loop = path.Path(loop_tuple)
+        logger.debug(loop.contains_point((6, 4)))
+        grounds: list[Position] = self.get_grounds(lines)
+
+        grid_tiles_tuple = [
+            (tile.position.row, tile.position.column) for tile in grid.tiles
+        ]
+        to_check = [(pos.row, pos.column) for pos in grounds]
+        enclosed_tiles = 0
+        for pos in to_check + grid_tiles_tuple:
+            if pos in loop_tuple:
+                continue
+            if loop.contains_point(pos):
+                logger.debug(f'Tile {pos} is enclosed by the loop')
+                enclosed_tiles += 1
+
+        logger.info(f'The total of enclosed tiles is {enclosed_tiles}')
+
+        return enclosed_tiles
+
+    def get_grounds(self, lines: list[str]) -> list[Position]:
+        result: list[Position] = []
+
+        for row in range(len(lines)):
+            for column in range(len(lines[row])):
+                if lines[row][column] == '.':
+                    result.append(Position(row, column))
+
+        return result
 
 
 if __name__ == '__main__':
-    Day10Solver().solve_first_problem("day_10/input.txt")
-    # Day10Solver().solve_second_problem("day_10/input.txt")
+    # Day10Solver().solve_first_problem("day_10/input.txt")
+    Day10Solver().solve_second_problem("day_10/input.txt")

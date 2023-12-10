@@ -15,8 +15,20 @@ class TestDay10Solver(unittest.TestCase):
         self.assertEqual(result2, 8)
 
     def test_can_solve_second_problem(self):
-        result = Day10Solver().solve_second_problem('tests/resources/test_day_10_2.txt')
-        self.assertEqual(result, 10)
+        result1 = Day10Solver().solve_second_problem(
+            'tests/resources/test_day_10_3.txt'
+        )
+        self.assertEqual(result1, 4)
+
+        result2 = Day10Solver().solve_second_problem(
+            'tests/resources/test_day_10_4.txt'
+        )
+        self.assertEqual(result2, 8)
+
+        result3 = Day10Solver().solve_second_problem(
+            'tests/resources/test_day_10_5.txt'
+        )
+        self.assertEqual(result3, 10)
 
     def test_correct_equality_for_points(self):
         point1 = Position(1, 2)
