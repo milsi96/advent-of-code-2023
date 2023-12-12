@@ -129,6 +129,8 @@ class Day11Solver(Solver):
         ground_rows = self.get_all_ground_rows(lines)
         ground_columns = self.get_all_ground_columns(lines)
 
+        logger.debug(', '.join([str(galaxy) for galaxy in galaxies.values()]))
+
         logger.debug(f'Ground rows: {ground_rows}')
         logger.debug(f'Ground columns: {ground_columns}')
 
