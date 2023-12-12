@@ -2,6 +2,7 @@ import unittest
 
 from custom_logger.custom_logger import CustomLogger
 from day_12.main import Arrangement, Condition, Day12Solver
+from file_reader.file_reader import FileReader
 
 logger = CustomLogger(__name__).get_logger()
 
@@ -33,9 +34,44 @@ class TestDay12Solver(unittest.TestCase):
         self.assertEqual(arrangement.operational_springs_indexes, [3])
         self.assertEqual(arrangement.unknown_springs_indexes, [0, 1, 2])
 
-    def test_get_next_arrangement(self):
-        arrangement = Arrangement(
-            [Condition.from_str(cond) for cond in '?#?#?#?#?#?#?#?'], [1, 1, 3]
-        )
+    def test_correct_arrangements_number(self) -> None:
+        lines = FileReader().get_lines('tests/resources/test_day_12.txt')
+        arrangements: list[Arrangement] = []
 
-        arrangement.valid_arrangements
+        for line in lines:
+            conditions = [cond for cond in line.split(' ')[0]]
+            arrangements.append(
+                Arrangement(
+                    [Condition.from_str(cond) for cond in conditions],
+                    [int(num) for num in line.split(' ')[1].split(',')],
+                )
+            )
+
+        self.assertEqual(arrangements[0].valid_arrangements, 1)
+        self.assertEqual(arrangements[1].valid_arrangements, 4)
+        self.assertEqual(arrangements[2].valid_arrangements, 1)
+        self.assertEqual(arrangements[3].valid_arrangements, 1)
+        self.assertEqual(arrangements[4].valid_arrangements, 4)
+        self.assertEqual(arrangements[5].valid_arrangements, 10)
+
+    def test_correct_arrangements_when_unfolded(self):
+        arr1 = Arrangement(
+            [Condition.from_str(cond) for cond in '????.#...#...'], [4, 1, 1]
+        )
+        logger.debug(arr1.valid_arrangements)
+
+    def test_arrangement_is_valid(self):
+        valid1 = Arrangement.is_valid(
+            [Condition.from_str(cond) for cond in '.#.#.#######.##'], [1, 3, 1, 6]
+        )
+        self.assertEqual(valid1, False)
+
+        valid2 = Arrangement.is_valid(
+            [Condition.from_str(cond) for cond in '.#.#.#########.'], [1, 3, 1, 6]
+        )
+        self.assertEqual(valid2, False)
+
+        valid3 = Arrangement.is_valid(
+            [Condition.from_str(cond) for cond in '.###.....###'], [3, 2, 1]
+        )
+        self.assertEqual(valid3, False)

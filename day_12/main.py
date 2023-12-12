@@ -53,9 +53,6 @@ class Arrangement:
     def valid_arrangements(cls) -> int:
         valid_arrangements = 0
         for new_arrangement in cls.next_arrangement():
-            logger.debug(
-                f'New arrangement: {"".join(str(arr) for arr in new_arrangement)}'
-            )
             if cls.is_valid(new_arrangement, cls.damaged_springs_groups):
                 valid_arrangements += 1
         return valid_arrangements
@@ -118,7 +115,76 @@ class Arrangement:
     def is_valid(
         spring_conditions: list[Condition], damaged_springs_groups: list[int]
     ) -> bool:
-        return False
+        if any([cond == Condition.UNKNOWN for cond in spring_conditions]):
+            return False
+        if sum([cond == Condition.DAMAGED for cond in spring_conditions]) != sum(
+            damaged_springs_groups
+        ):
+            return False
+
+        temp_groups = damaged_springs_groups.copy()
+        i = 0
+        while i < len(spring_conditions):
+            logger.debug(
+                f'Checking conditions {0}'.format(
+                    "".join([str(cond) for cond in spring_conditions[i:]])
+                )
+            )
+            if spring_conditions[i] == '#':
+                try:
+                    items_number = temp_groups.pop(0)
+                    damaged = [
+                        cond == Condition.DAMAGED
+                        for cond in spring_conditions[i : i + items_number]
+                    ]
+                    logger.debug(f'Total damages for group: {damaged}')
+                    logger.debug(f'Items number: {items_number}')
+                    logger.debug(f'Current index {i}')
+                    if not all(damaged):
+                        logger.warning(
+                            f'Not all springs in group {0} are damaged'.format(
+                                "".join(
+                                    [
+                                        str(cond)
+                                        for cond in spring_conditions[
+                                            i : i + items_number
+                                        ]
+                                    ]
+                                )
+                            )
+                        )
+                        return False
+                    if i > 0 and spring_conditions[i - 1] != '.':
+                        logger.warning(
+                            f'The spring before the group is damaged, got {0}'.format(
+                                spring_conditions[i - 1]
+                            )
+                        )
+                        return False
+                    if (
+                        i + items_number <= len(spring_conditions) - 1
+                        and spring_conditions[i + items_number] != '.'
+                    ):
+                        logger.warning(
+                            f'The spring after the group is damaged, got {0}'.format(
+                                spring_conditions[i + items_number]
+                            )
+                        )
+                        return False
+
+                    i += items_number
+                except IndexError as e:
+                    logger.error(e)
+                    raise e
+            i += 1
+
+        logger.info(
+            f'This arrangement {0} with groups {1} is valid'.format(
+                "".join([str(cond) for cond in spring_conditions]),
+                damaged_springs_groups,
+            )
+        )
+        return True
 
 
 class Day12Solver(Solver):
@@ -135,9 +201,10 @@ class Day12Solver(Solver):
                 )
             )
 
-        logger.debug(f'First arrangement: {arrangements[4]}')
+        total_arrangements = sum([arr.valid_arrangements for arr in arrangements])
+        logger.info(f'The total of valid arrangements is {total_arrangements}')
 
-        return 0
+        return total_arrangements
 
     def get_first_unknown_spring(self, springs: list[str]) -> int:
         for i in range(len(springs)):
