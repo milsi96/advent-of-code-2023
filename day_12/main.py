@@ -1,4 +1,5 @@
 from enum import StrEnum
+from functools import lru_cache
 import itertools
 from typing import Generator, Optional
 from custom_logger.custom_logger import CustomLogger
@@ -52,22 +53,69 @@ class Arrangement:
     @property
     def valid_arrangements(cls) -> int:
         valid_arrangements = 0
-        for new_arrangement in cls.next_arrangement():
+        for new_arrangement in Arrangement.next_arrangement(cls.spring_conditions):
             if cls.is_valid(new_arrangement, cls.damaged_springs_groups):
                 valid_arrangements += 1
         return valid_arrangements
 
-    def next_arrangement(self) -> Generator:
-        possible_conditions = [Condition.DAMAGED, Condition.OPERATIONAL]
-        condition_combinations = list(
-            itertools.product(
-                possible_conditions, repeat=len(self.unknown_springs_indexes)
+    @property
+    def valid_arrangements_unfolded(cls) -> int:
+        match cls.spring_conditions[-1]:
+            case Condition.DAMAGED:
+                return pow(cls.valid_arrangements, 5)
+            case Condition.OPERATIONAL:
+                return cls._case_operational()
+            case Condition.UNKNOWN:
+                return cls._case_unknown()
+
+    @lru_cache
+    def _case_unknown(self) -> int:
+        valid_arrangements_unfolded = 0
+        new_spring_conditions = self.spring_conditions.copy()
+        addition = [Condition.UNKNOWN] + new_spring_conditions
+        new_spring_conditions.extend(addition + addition + addition + addition)
+
+        logger.debug(''.join([str(cond) for cond in new_spring_conditions]))
+
+        for new_arrangement in Arrangement.next_arrangement(new_spring_conditions):
+            logger.debug(
+                "New arrangement: {}".format(
+                    ''.join([str(cond) for cond in new_spring_conditions])
+                )
             )
+            if self.is_valid(new_arrangement, self.damaged_springs_groups):
+                valid_arrangements_unfolded += 1
+
+        logger.debug(f'Total unfolded is {valid_arrangements_unfolded}')
+        return valid_arrangements_unfolded
+
+    def _case_operational(self) -> int:
+        valid_arrangements_unfolded = 0
+        new_spring_conditions = self.spring_conditions.copy()
+        new_spring_conditions.insert(0, Condition.UNKNOWN)
+
+        for new_arrangement in Arrangement.next_arrangement(new_spring_conditions):
+            if self.is_valid(new_arrangement, self.damaged_springs_groups):
+                valid_arrangements_unfolded += 1
+
+        logger.debug(f'Total unfolded is {valid_arrangements_unfolded}')
+        return pow(valid_arrangements_unfolded, 4) * self.valid_arrangements
+
+    @staticmethod
+    def next_arrangement(spring_conditions: list[Condition]) -> Generator:
+        possible_conditions = [Condition.DAMAGED, Condition.OPERATIONAL]
+        unknown_springs_indexes: list[int] = []
+        for i in range(len(spring_conditions)):
+            if spring_conditions[i] == Condition.UNKNOWN:
+                unknown_springs_indexes.append(i)
+
+        condition_combinations = list(
+            itertools.product(possible_conditions, repeat=len(unknown_springs_indexes))
         )
         for comb in condition_combinations:
             index = 0
-            temp_conditions = self.spring_conditions.copy()
-            for i in self.unknown_springs_indexes:
+            temp_conditions = spring_conditions.copy()
+            for i in unknown_springs_indexes:
                 temp_conditions[i] = comb[index]
                 index += 1
             yield temp_conditions
@@ -125,11 +173,6 @@ class Arrangement:
         temp_groups = damaged_springs_groups.copy()
         i = 0
         while i < len(spring_conditions):
-            logger.debug(
-                f'Checking conditions {0}'.format(
-                    "".join([str(cond) for cond in spring_conditions[i:]])
-                )
-            )
             if spring_conditions[i] == '#':
                 try:
                     items_number = temp_groups.pop(0)
@@ -137,39 +180,14 @@ class Arrangement:
                         cond == Condition.DAMAGED
                         for cond in spring_conditions[i : i + items_number]
                     ]
-                    logger.debug(f'Total damages for group: {damaged}')
-                    logger.debug(f'Items number: {items_number}')
-                    logger.debug(f'Current index {i}')
                     if not all(damaged):
-                        logger.warning(
-                            f'Not all springs in group {0} are damaged'.format(
-                                "".join(
-                                    [
-                                        str(cond)
-                                        for cond in spring_conditions[
-                                            i : i + items_number
-                                        ]
-                                    ]
-                                )
-                            )
-                        )
                         return False
                     if i > 0 and spring_conditions[i - 1] != '.':
-                        logger.warning(
-                            f'The spring before the group is damaged, got {0}'.format(
-                                spring_conditions[i - 1]
-                            )
-                        )
                         return False
                     if (
                         i + items_number <= len(spring_conditions) - 1
                         and spring_conditions[i + items_number] != '.'
                     ):
-                        logger.warning(
-                            f'The spring after the group is damaged, got {0}'.format(
-                                spring_conditions[i + items_number]
-                            )
-                        )
                         return False
 
                     i += items_number
@@ -179,7 +197,7 @@ class Arrangement:
             i += 1
 
         logger.info(
-            f'This arrangement {0} with groups {1} is valid'.format(
+            'This arrangement {0} with groups {1} is valid'.format(
                 "".join([str(cond) for cond in spring_conditions]),
                 damaged_springs_groups,
             )
@@ -213,9 +231,24 @@ class Day12Solver(Solver):
         return -1
 
     def solve_second_problem(self, file_name: str) -> int:
-        self.get_lines(file_name)
+        lines = self.get_lines(file_name)
+        arrangements: list[Arrangement] = []
 
-        return 0
+        for line in lines:
+            conditions = [cond for cond in line.split(' ')[0]]
+            arrangements.append(
+                Arrangement(
+                    [Condition.from_str(cond) for cond in conditions],
+                    [int(num) for num in line.split(' ')[1].split(',')],
+                )
+            )
+
+        total_arrangements = sum(
+            [arr.valid_arrangements_unfolded for arr in arrangements]
+        )
+        logger.info(f'The total of valid arrangements is {total_arrangements}')
+
+        return total_arrangements
 
 
 if __name__ == '__main__':
