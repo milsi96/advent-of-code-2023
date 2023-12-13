@@ -1,6 +1,5 @@
 from enum import StrEnum
 from typing import Optional
-import numpy as np
 from custom_logger.custom_logger import CustomLogger
 from solver.solver import Solver
 
@@ -41,7 +40,7 @@ class Point:
         return not cls.is_ash
 
     def __str__(self) -> str:
-        return f'({self.row}, {self.column}): {str(self.value)}'
+        return str(self.value)
 
     def __eq__(self, __value: object) -> bool:
         if not isinstance(__value, Point):
@@ -49,32 +48,10 @@ class Point:
         return self.value == __value.value
 
 
-class Line:
-    rocks: list[Point]
-    ashes: list[Point]
-
-    def __init__(self, rocks: list[Point], ashes: list[Point]) -> None:
-        self.rocks = rocks
-        self.ashes = ashes
-
-    def __str__(self) -> str:
-        for i in range(len(self.rocks + self.ashes)):
-            pass
-        return "Rocks: {}, Ashes: {}".format(
-            ', '.join([str(rock) for rock in self.rocks]),
-            ''.join([str(ash) for ash in self.ashes]),
-        )
-
-    def __eq__(self, __value: object) -> bool:
-        if not isinstance(__value, Line):
-            return False
-        return self.rocks == __value.rocks and self.ashes == __value.ashes
-
-
 class Note:
-    lines: list[Line]
+    lines: list[list[Point]]
 
-    def __init__(self, lines: list[Line]) -> None:
+    def __init__(self, lines: list[list[Point]]) -> None:
         self.lines = lines
 
     def __str__(self) -> str:
@@ -82,18 +59,25 @@ class Note:
 
     @property
     def total_column_above_reflection(cls) -> int:
-        result = 0
         horizontal_reflection = cls._horizontal_reflection_index(cls.lines)
         vertical_reflection = cls._vertical_reflection_index(cls.lines)
+
+        result = 0
         if horizontal_reflection is not None:
+            logger.info(
+                f'The horizontal reflection line is at index {horizontal_reflection}'
+            )
             result += 100 * (horizontal_reflection + 1)
         if vertical_reflection is not None:
+            logger.info(
+                f'The vertical reflection line is at index {vertical_reflection}'
+            )
             result += vertical_reflection + 1
         return result
 
-    def _horizontal_reflection_index(self, lines: list[Line]) -> Optional[int]:
+    def _horizontal_reflection_index(self, lines: list[list[Point]]) -> Optional[int]:
         for row in range(len(lines)):
-            if row + 1 == len(lines) - 1:
+            if row + 1 == len(lines):
                 break
             if lines[row] == lines[row + 1]:
                 index = 0
@@ -107,50 +91,51 @@ class Note:
                     return row
         return None
 
-    def _vertical_reflection_index(self, lines: list[Line]) -> Optional[int]:
-        transposed_lines = np.array(lines).transpose()
+    def _vertical_reflection_index(self, lines: list[list[Point]]) -> Optional[int]:
+        lines_copy = lines.copy()
+        transposed_lines = [
+            [lines_copy[j][i] for j in range(len(lines_copy))]
+            for i in range(len(lines_copy[0]))
+        ]
 
-        logger.debug(', '.join(str(line) for line in transposed_lines.tolist()))
-
-        return self._horizontal_reflection_index(transposed_lines.tolist())
+        return self._horizontal_reflection_index(transposed_lines)
 
 
 class Day13Solver(Solver):
     def solve_first_problem(self, file_name: str) -> int:
         lines = self.get_lines(file_name)
         logger.debug(lines)
-
         notes: list[Note] = []
-        temp_note: list[Line] = []
+
+        temp_note: list[str] = []
         for line in lines:
             if line == '':
-                notes.append(Note(temp_note))
+                notes.append(self.parse_note(temp_note))
                 temp_note = []
                 continue
-            temp_note.append(self.parse_line(line))
-        notes.append(Note(temp_note))
+            temp_note.append(line)
+        notes.append(self.parse_note(temp_note))
 
-        logger.debug('\n'.join([str(note) for note in notes]))
+        total = sum([note.total_column_above_reflection for note in notes])
+        logger.debug(f'Total sum is {total}')
 
-        return 0
+        return total
 
-    def parse_line(self, line: str) -> Line:
-        ashes: list[Point] = []
-        rocks: list[Point] = []
+    def parse_note(self, lines: list[str]) -> Note:
+        points: list[list[Point]] = []
 
-        # TODO: need to parse a matrix of lines not only one line
-        for row in range(len(line)):
-            for column in range(len([ch for ch in line[row]])):
-                logger.debug(line[row])
-                if line[row][column] == Pattern.ROCK.value:
-                    rocks.append(Point(row, column, Pattern.ROCK))
-                elif line[row][column] == Pattern.ASH.value:
-                    ashes.append(Point(row, column, Pattern.ASH))
+        for row in range(len(lines)):
+            temp_points: list[Point] = []
+            for column in range(len(lines[row])):
+                if lines[row][column] == Pattern.ROCK.value:
+                    temp_points.append(Point(row, column, Pattern.ROCK))
+                elif lines[row][column] == Pattern.ASH.value:
+                    temp_points.append(Point(row, column, Pattern.ASH))
                 else:
                     continue
-        logger.debug('\n')
+            points.append(temp_points)
 
-        return Line(rocks, ashes)
+        return Note(points)
 
     def solve_second_problem(self, file_name: str) -> int:
         return 0
@@ -158,4 +143,4 @@ class Day13Solver(Solver):
 
 if __name__ == '__main__':
     Day13Solver().solve_first_problem("day_13/input.txt")
-    Day13Solver().solve_second_problem("day_13/input.txt")
+    # Day13Solver().solve_second_problem("day_13/input.txt")
