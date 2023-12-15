@@ -15,3 +15,6 @@ class TestDay15Solver(unittest.TestCase):
         token = 'HASH'
         result = Day15Solver().calculate_hash(token)
         self.assertEqual(result, 52)
+
+    def test_can_solve_second_problem(self) -> None:
+        Day15Solver().solve_second_problem('tests/resources/test_day_15.txt')
