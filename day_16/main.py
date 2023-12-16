@@ -77,12 +77,17 @@ class Move:
 class Day16Solver(Solver):
     def solve_first_problem(self, file_name: str) -> int:
         contraption = self.parse_contraption(self.get_lines(file_name))
-
-        seen_moves: set[Move] = set()
-
         self.print_contraption(contraption)
 
-        next_moves: list[Move] = [Move(Direction.RIGHT, contraption[0][0])]
+        first_move = Move(Direction.RIGHT, contraption[0][0])
+        energized_tiles = self.energized_beams(contraption, first_move)
+        logger.debug(f'Energized tiles are {energized_tiles}')
+
+        return energized_tiles
+
+    def energized_beams(self, contraption: list[list[Tile]], move: Move) -> int:
+        seen_moves: set[Move] = set()
+        next_moves: list[Move] = [move]
         while len(next_moves) != 0:
             move = next_moves.pop(0)
             if move in seen_moves:
@@ -92,11 +97,7 @@ class Day16Solver(Solver):
             if temp_moves is not None:
                 next_moves.extend(temp_moves)
 
-        seen_tiles: set[Tile] = {move.next_tile for move in seen_moves}
-        energized_tiles = len(seen_tiles)
-        logger.debug(f'Energized tiles are {energized_tiles}')
-
-        return energized_tiles
+        return len({move.next_tile for move in seen_moves})
 
     def print_contraption(self, contraption: list[list[Tile]]) -> None:
         for line in contraption:

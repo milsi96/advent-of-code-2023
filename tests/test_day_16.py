@@ -1,7 +1,7 @@
 import unittest
 from custom_logger.custom_logger import CustomLogger
 
-from day_16.main import Day16Solver, Direction
+from day_16.main import Day16Solver, Direction, Move
 from file_reader.file_reader import FileReader
 
 logger = CustomLogger(__name__).get_logger()
@@ -17,6 +17,14 @@ class TestDay16Solver(unittest.TestCase):
     def test_can_solve_first_problem(self) -> None:
         result = Day16Solver().solve_first_problem('tests/resources/test_day_16.txt')
         self.assertEqual(result, 46)
+
+    def test_can_solve_second_problem(self) -> None:
+        pass
+
+    def test_energized_beam_are_correct(self):
+        first_move = Move(Direction.DOWN, self.contraption[0][3])
+        result = Day16Solver().energized_beams(self.contraption, first_move)
+        self.assertEqual(result, 51)
 
     def test_move_from_empty_space(self):
         move1 = Day16Solver().next_tiles(
