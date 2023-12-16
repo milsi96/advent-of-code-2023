@@ -88,9 +88,6 @@ class Day16Solver(Solver):
             if move in seen_moves:
                 continue
             seen_moves.add(move)
-            logger.debug(
-                f'Moving from tile {move.next_tile} in direction {move.direction.name}'
-            )
             temp_moves = self.next_tiles(contraption, move.direction, move.next_tile)
             if temp_moves is not None:
                 next_moves.extend(temp_moves)
