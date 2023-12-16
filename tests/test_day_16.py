@@ -19,7 +19,8 @@ class TestDay16Solver(unittest.TestCase):
         self.assertEqual(result, 46)
 
     def test_can_solve_second_problem(self) -> None:
-        pass
+        result = Day16Solver().solve_second_problem('tests/resources/test_day_16.txt')
+        self.assertEqual(result, 51)
 
     def test_energized_beam_are_correct(self):
         first_move = Move(Direction.DOWN, self.contraption[0][3])

@@ -81,7 +81,7 @@ class Day16Solver(Solver):
 
         first_move = Move(Direction.RIGHT, contraption[0][0])
         energized_tiles = self.energized_beams(contraption, first_move)
-        logger.debug(f'Energized tiles are {energized_tiles}')
+        logger.info(f'Energized tiles are {energized_tiles}')
 
         return energized_tiles
 
@@ -272,7 +272,36 @@ class Day16Solver(Solver):
                 )
 
     def solve_second_problem(self, file_name: str) -> int:
-        return 0
+        contraption = self.parse_contraption(self.get_lines(file_name))
+        self.print_contraption(contraption)
+        max_energized_tiles: int = 0
+
+        # FIRST COLUMN
+        for row in range(len(contraption)):
+            first_move = Move(Direction.RIGHT, contraption[row][0])
+            energized_tiles = self.energized_beams(contraption, first_move)
+            max_energized_tiles = max(max_energized_tiles, energized_tiles)
+
+        # LAST COLUMN
+        for row in range(len(contraption)):
+            first_move = Move(Direction.LEFT, contraption[row][-1])
+            energized_tiles = self.energized_beams(contraption, first_move)
+            max_energized_tiles = max(max_energized_tiles, energized_tiles)
+
+        # FIRST ROW
+        for column in range(1, len(contraption[0]) - 1):
+            first_move = Move(Direction.DOWN, contraption[0][column])
+            energized_tiles = self.energized_beams(contraption, first_move)
+            max_energized_tiles = max(max_energized_tiles, energized_tiles)
+
+        # LAST ROW
+        for column in range(1, len(contraption[0]) - 1):
+            first_move = Move(Direction.UP, contraption[-1][column])
+            energized_tiles = self.energized_beams(contraption, first_move)
+            max_energized_tiles = max(max_energized_tiles, energized_tiles)
+
+        logger.info(f'The maximum of energized tiles is {max_energized_tiles}')
+        return max_energized_tiles
 
 
 if __name__ == '__main__':
