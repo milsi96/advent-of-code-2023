@@ -1,3 +1,4 @@
+import sys
 from custom_logger.custom_logger import CustomLogger
 from solver.solver import Solver
 
@@ -40,18 +41,12 @@ class Day17Solver(Solver):
                 city_map[Point(row, column)] = cities[row][column]
 
         start_point = Point(0, 0)
-        self.generate_heat_loss(city_map, [start_point], Point(0, 0))
-
-        logger.debug(
-            ', '.join(
-                [
-                    f'{str(point)}: {heat_loss}'
-                    for point, heat_loss in self.heat_loss_store.items()
-                ]
-            )
+        end_point = Point(len(lines) - 1, len(lines) - 1)
+        min_loss = self.generate_heat_loss(
+            city_map, [start_point], Point(0, 0), end_point
         )
 
-        return 0
+        return min_loss
 
     def get_next_points(
         self, city_map: dict[Point, int], previous_points: list[Point], point: Point
@@ -73,25 +68,35 @@ class Day17Solver(Solver):
         return list(filter(point_is_admissable, next_points))
 
     def generate_heat_loss(
-        self, city_map: dict[Point, int], previous_points: list[Point], point: Point
+        self,
+        city_map: dict[Point, int],
+        previous_points: list[Point],
+        point: Point,
+        end: Point,
     ) -> int:
-        if point in self.heat_loss_store:
-            return self.heat_loss_store[point]
-
         next_points = self.get_next_points(city_map, previous_points, point)
         if len(next_points) == 0:
-            self.heat_loss_store[point] = city_map[point]
-            return city_map[point]
+            return sys.maxsize
 
-        logger.debug(f'Moves from {point} are {", ".join(map(str, next_points))}')
+        if end in next_points:
+            previous_points.append(end)
+            heat_loss = sum([city_map[p] for p in previous_points])
+            logger.debug(
+                f"Found end with loss {heat_loss} "
+                + " -> ".join(map(str, previous_points))
+            )
+            return heat_loss
+
+        if point in self.heat_loss_store.keys():
+            return self.heat_loss_store[point]
 
         for next_point in next_points:
             trial_path = previous_points.copy()
             trial_path.append(next_point)
-            result = self.generate_heat_loss(city_map, trial_path, next_point)
-
+            logger.debug(f"Cheking point {next_point}")
+            result = self.generate_heat_loss(city_map, trial_path, next_point, end)
             if point not in self.heat_loss_store.keys():
-                self.heat_loss_store[point] = city_map[point] + result
+                self.heat_loss_store[point] = result
             else:
                 self.heat_loss_store[point] = min(self.heat_loss_store[point], result)
 
@@ -115,6 +120,7 @@ class Day17Solver(Solver):
 
         if same_direction_row or same_direction_column:
             return False
+
         return True
 
     def solve_second_problem(self, file_name: str) -> int:
