@@ -1,4 +1,4 @@
-import sys
+from typing import Tuple
 from custom_logger.custom_logger import CustomLogger
 from solver.solver import Solver
 
@@ -42,11 +42,14 @@ class Day17Solver(Solver):
 
         start_point = Point(0, 0)
         end_point = Point(len(lines) - 1, len(lines) - 1)
-        min_loss = self.generate_heat_loss(
-            city_map, [start_point], Point(0, 0), end_point
-        )
+        costs, order = self.generate_heat_loss(city_map, Point(0, 0), end_point)
 
-        return min_loss
+        path = self.reconstruct_path(order, start_point, end_point)
+        logger.debug(" ".join(map(str, path)))
+
+        logger.debug(f'Total cost is {costs[end_point]}')
+
+        return costs[end_point]
 
     def get_next_points(
         self, city_map: dict[Point, int], previous_points: list[Point], point: Point
@@ -70,37 +73,52 @@ class Day17Solver(Solver):
     def generate_heat_loss(
         self,
         city_map: dict[Point, int],
-        previous_points: list[Point],
-        point: Point,
+        start: Point,
         end: Point,
-    ) -> int:
-        next_points = self.get_next_points(city_map, previous_points, point)
-        if len(next_points) == 0:
-            return sys.maxsize
+    ) -> Tuple[dict[Point, int], dict[Point, Point]]:
+        frontier: list[Point] = [start]
+        cost_so_far: dict[Point, int] = {}
+        cost_so_far[start] = 0
+        came_from: dict[Point, Point] = {}
 
-        if end in next_points:
-            previous_points.append(end)
-            heat_loss = sum([city_map[p] for p in previous_points])
-            logger.debug(
-                f"Found end with loss {heat_loss} "
-                + " -> ".join(map(str, previous_points))
-            )
-            return heat_loss
+        while len(frontier) > 0:
+            current_point: Point = frontier.pop(0)
 
-        if point in self.heat_loss_store.keys():
-            return self.heat_loss_store[point]
+            if current_point == end:
+                break
 
-        for next_point in next_points:
-            trial_path = previous_points.copy()
-            trial_path.append(next_point)
-            logger.debug(f"Cheking point {next_point}")
-            result = self.generate_heat_loss(city_map, trial_path, next_point, end)
-            if point not in self.heat_loss_store.keys():
-                self.heat_loss_store[point] = result
-            else:
-                self.heat_loss_store[point] = min(self.heat_loss_store[point], result)
+            previous_points = self.reconstruct_path(came_from, start, current_point)
 
-        return self.heat_loss_store[point]
+            for next_point in self.get_next_points(
+                city_map, previous_points, current_point
+            ):
+                new_cost = cost_so_far[current_point] + city_map[next_point]
+                if (
+                    next_point not in cost_so_far.keys()
+                    or new_cost < cost_so_far[next_point]
+                ):
+                    logger.debug(f'From {current_point} to {next_point} = {new_cost}')
+                    cost_so_far[next_point] = new_cost
+                    frontier.append(next_point)
+                    came_from[next_point] = current_point
+
+        return (cost_so_far, came_from)
+
+    def reconstruct_path(
+        self, came_from: dict[Point, Point], start: Point, end: Point
+    ) -> list[Point]:
+        current = end
+        path: list[Point] = []
+        if end not in came_from:
+            return []
+
+        while current != start:
+            path.append(current)
+            current = came_from[current]
+
+        path.append(start)
+        path.reverse()
+        return path
 
     def path_is_admissable(self, path: list[Point]) -> bool:
         max_same_direction = 4

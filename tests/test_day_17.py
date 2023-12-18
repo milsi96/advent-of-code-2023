@@ -30,3 +30,17 @@ class TestDay17Solver(unittest.TestCase):
         solver.generate_heat_loss(city_map, [start_point], start_point, end_point)
         for point, min_heat_loss in solver.heat_loss_store.items():
             logger.debug(f'{point} -> {min_heat_loss}')
+
+    def test_next_points(self) -> None:
+        lines = FileReader().get_lines('tests/resources/test_day_17.txt')
+        city_map: dict[Point, int] = {}
+        cities: list[list[int]] = [
+            [int(lines[row][column]) for column in range(len(lines[row]))]
+            for row in range(len(lines))
+        ]
+        for row in range(len(cities)):
+            for column in range(len(cities[row])):
+                city_map[Point(row, column)] = cities[row][column]
+
+        next_points = Day17Solver().get_next_points(city_map, [], Point(12, 12))
+        self.assertEqual(len(next_points), 2)
