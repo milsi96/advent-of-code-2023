@@ -170,6 +170,14 @@ class Day19Solver(Solver):
         return result
 
     def solve_second_problem(self, file_name: str) -> int:
+        # This couldbe solved calculating the combinations
+        # of valid values for every rating. Es:
+        # if x=[1, 4000] and two rules are x<500:R and x<5456:A,
+        # numbers that make the value of x admissable are (500, 5456)
+        # and so on for the other ratings.
+        # The total number of combinations is this calculation
+        # for every rating multiplied together.
+
         return 0
 
 
