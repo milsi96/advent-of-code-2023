@@ -129,8 +129,6 @@ class Day19Solver(Solver):
                     rule for rule in rules if rule.part_selector is None
                 ][0].next_workflow
 
-        logger.debug(f'Final workflow is {current_workflow}')
-
         if current_workflow == 'A':
             return True
         return False
@@ -177,6 +175,33 @@ class Day19Solver(Solver):
         # and so on for the other ratings.
         # The total number of combinations is this calculation
         # for every rating multiplied together.
+
+        lines = self.get_lines(file_name)
+        rules_pattern = r'^(.+){(.+)}$'
+        workflows_list: list[str] = [
+            line for line in lines if re.match(rules_pattern, line)
+        ]
+        workflows = self.parse_rules(workflows_list)
+
+        self.combinations('x', workflows)
+
+        return 0
+
+    def combinations(
+        self,
+        part: str,
+        workflows: dict[Workflow, list[Rule]],
+        current_workflow: Workflow,
+    ) -> dict[range, bool]:
+        ranges: dict[range, bool] = {}
+        current_workflow = 'in'
+
+        while current_workflow not in ['A', 'R']:
+            for rule in workflows[current_workflow]:
+                if rule.part_selector is not None and rule.part_selector == part:
+                    pass
+
+        logger.debug(f'Combinations are {ranges}')
 
         return 0
 
